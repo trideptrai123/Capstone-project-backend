@@ -2,21 +2,36 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const router = require('./routes/router');
+const mongoose = require('mongoose');
+const User = require('./models/User');
+
 const app = express();
+app.use(express.json());
+app.use(cors());
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+mongoose.connect('mongodb://localhost:27017/capston-project');
 
-const corsOptions = {
-  origin: '*',
-  Credential: true,
-  optionSuccessStatus: 200,
-};
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+  User.findOne({ email: email }).then((user) => {
+    if (user) {
+      if (user.password === password) {
+        res.json('Success');
+      } else {
+        res.json('The password is incorrect');
+      }
+    } else {
+      res.json('No record existed');
+    }
+  });
+});
 
-app.use(cors(corsOptions));
-app.use('/', router);
+app.post('/Signup', (req, res) => {
+  User.create(req.body)
+    .then((user) => res.json(user))
+    .catch((err) => res.json(err));
+});
 
-const port = 4000;
-const server = app.listen(port, () => {
-  console.log(` Server is running on port ${port}`);
+app.listen(4000, () => {
+  console.log('server is running');
 });
