@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
       enum: ['university_student', 'high_school_student'],
       required: true,
     },
+    isAdmin: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     timestamps: true,
