@@ -1,17 +1,17 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-
-const dotenv = require('dotenv');
-const cookieParser = require('cookie-parser');
-const authRoute = require('./routers/auth');
-const userRoute = require('./routers/user');
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import userRoutes from './routers/userRoutes.js';
+import { notFound, errorHandler } from '../server/middleware/errorMiddleware.js';
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 dotenv.config();
+
 mongoose
   .connect('mongodb://localhost:27017/capston-project', {
     useNewUrlParser: true,
@@ -27,12 +27,13 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-//Routes
+// Routes
+app.use('/api/users', userRoutes);
 
-app.use('/v1/auth', authRoute);
-app.use('/v1/user', userRoute);
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(PORT, () =>
+  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
+);
