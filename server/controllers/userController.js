@@ -1,7 +1,6 @@
 import asyncHandler from '../middleware/asyncHandler.js';
 import generateToken from '../utils/generateToken.js';
-import User from '../models/user.js';
-// import Cart from '../models/cart.js';
+import User from '../models/User.js';
 
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
@@ -30,7 +29,7 @@ const authUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, userType } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -43,9 +42,10 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
+    userType,
   });
 
-  // Nếu người dùng được tạo thành công, tạo token và trả về thông tin người dùng
+  // If user is successfully created, generate token and return user info
   if (user) {
     generateToken(res, user._id);
 
@@ -54,6 +54,7 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      userType: user.userType,
     });
   } else {
     res.status(400);
@@ -81,6 +82,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      userType: user.userType,
     });
   } else {
     res.status(404);
@@ -97,6 +99,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
+    user.userType = req.body.userType || user.userType;
 
     if (req.body.password) {
       user.password = req.body.password;
@@ -108,6 +111,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       _id: updatedUser._id,
       name: updatedUser.name,
       email: updatedUser.email,
+      userType: updatedUser.userType,
       isAdmin: updatedUser.isAdmin,
     });
   } else {
@@ -166,6 +170,7 @@ const updateUser = asyncHandler(async (req, res) => {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
     user.isAdmin = Boolean(req.body.isAdmin);
+    user.userType = req.body.userType || user.userType; // Update userType if provided
 
     const updatedUser = await user.save();
 
@@ -174,6 +179,7 @@ const updateUser = asyncHandler(async (req, res) => {
       name: updatedUser.name,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
+      userType: updatedUser.userType, // Return updated userType in the response
     });
   } else {
     res.status(404);

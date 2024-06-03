@@ -10,11 +10,15 @@ const userSchema = mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     password: {
       type: String,
       required: true,
+    },
+    userType: {
+      type: String,
+      required: true,
+      enum: ['Student university', 'High school student'],
     },
     isAdmin: {
       type: Boolean,
@@ -42,6 +46,6 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.models.User || mongoose.model('User', userSchema);
 
 export default User;
