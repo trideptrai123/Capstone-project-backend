@@ -4,7 +4,11 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import userRoutes from './routers/userRoutes.js';
-import { notFound, errorHandler } from '../server/middleware/errorMiddleware.js';
+import universityRoutes from './routers/universityRoutes.js';
+import {
+  notFound,
+  errorHandler,
+} from '../server/middleware/errorMiddleware.js';
 
 const app = express();
 app.use(express.json());
@@ -29,6 +33,7 @@ app.use(cors(corsOptions));
 
 // Routes
 app.use('/api/users', userRoutes);
+app.use('/api/universities', universityRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
