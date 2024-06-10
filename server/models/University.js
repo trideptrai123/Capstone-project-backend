@@ -1,7 +1,6 @@
-// models/University.js
-
 import mongoose from 'mongoose';
 const { Schema } = mongoose;
+
 // Define the Subject schema
 const SubjectSchema = new Schema({
   name: {
@@ -37,6 +36,30 @@ const UniversitySchema = new Schema({
     required: true,
   },
   subjects: [SubjectSchema],
+  teachingStandards: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100,
+  },
+  studentQuality: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100,
+  },
+  facilitiesStandards: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100,
+  },
+  nationalRanking: {
+    type: Number,
+    required: true,
+    min: 0,
+    max: 100,
+  },
 });
 
 // Create the model from the schema
