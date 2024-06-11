@@ -60,9 +60,22 @@ const UniversitySchema = new Schema({
     min: 0,
     max: 100,
   },
+  description: { type: String, required: true },
+  website: { type: String, required: true },
+  admissionCode: {
+    type: String,
+    required: true,
+  },
+  establishedYear: {
+    type: Number,
+    required: true,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
 });
 
-// Create the model from the schema
 const University =
   mongoose.models.University || mongoose.model('University', UniversitySchema);
 
