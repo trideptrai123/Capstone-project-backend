@@ -25,6 +25,12 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    likedUniversities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'University',
+      },
+    ],
   },
   {
     timestamps: true,
