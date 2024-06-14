@@ -17,7 +17,7 @@ app.use(cookieParser());
 dotenv.config();
 
 mongoose
-  .connect('mongodb://localhost:27017/capston-project', {
+  .connect('mongodb+srv://phamphuoctri:20052002tri@cluster0.ajsvu9b.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -42,3 +42,6 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
+
+
+
