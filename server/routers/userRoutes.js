@@ -10,6 +10,9 @@ import {
   getUserById,
   updateUser,
   likeUniversity,
+  searchUser,
+  inactiveUser,
+  addUser,
 } from '../controllers/userController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -18,15 +21,23 @@ const router = express.Router();
 router.route('/').post(registerUser).get(protect, admin, getUsers);
 router.post('/auth', authUser);
 router.post('/logout', logoutUser);
+router.post('/add', addUser);
+
 router
   .route('/profile')
   .get(protect, getUserProfile)
   .put(protect, updateUserProfile);
+  router.get("/search",searchUser)
+  router.put("/inactive/:id",inactiveUser)
+
+
 router
   .route('/:id')
   .delete(protect, admin, deleteUser)
-  .get(protect, admin, getUserById)
-  .put(protect, admin, updateUser);
+  .get(protect, getUserById)
+  .put(protect, updateUser);
+
+
 router.put('/like/:id', protect, likeUniversity); // Route để like/unlike university
 
 export default router;

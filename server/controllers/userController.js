@@ -1,6 +1,6 @@
-import asyncHandler from '../middleware/asyncHandler.js';
-import generateToken from '../utils/generateToken.js';
-import User from '../models/User.js';
+import asyncHandler from "../middleware/asyncHandler.js";
+import generateToken from "../utils/generateToken.js";
+import User from "../models/User.js";
 
 // @desc    Auth user & get token
 // @route   POST /api/users/auth
@@ -23,7 +23,7 @@ const authUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(401);
-    throw new Error('Invalid email or password');
+    throw new Error("Invalid email or password");
   }
 });
 
@@ -37,7 +37,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   if (userExists) {
     res.status(400);
-    throw new Error('User already exists');
+    throw new Error("User already exists");
   }
 
   const user = await User.create({
@@ -61,7 +61,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(400);
-    throw new Error('Invalid user data');
+    throw new Error("Invalid user data");
   }
 });
 
@@ -69,15 +69,15 @@ const registerUser = asyncHandler(async (req, res) => {
 // @route   POST /api/users/logout
 // @access  Public
 const logoutUser = (req, res) => {
-  res.clearCookie('jwt');
-  res.status(200).json({ message: 'Logged out successfully' });
+  res.clearCookie("jwt");
+  res.status(200).json({ message: "Logged out successfully" });
 };
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).populate('likedUniversities');
+  const user = await User.findById(req.user._id).populate("likedUniversities");
 
   if (user) {
     res.json({
@@ -87,10 +87,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
+      role:user?.role
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -122,7 +123,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -143,13 +144,13 @@ const deleteUser = asyncHandler(async (req, res) => {
   if (user) {
     if (user.isAdmin) {
       res.status(400);
-      throw new Error('Can not delete admin user');
+      throw new Error("Can not delete admin user");
     }
     await User.deleteOne({ _id: user._id });
-    res.json({ message: 'User removed' });
+    res.json({ message: "User removed" });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -157,13 +158,13 @@ const deleteUser = asyncHandler(async (req, res) => {
 // @route   GET /api/users/:id
 // @access  Private/Admin
 const getUserById = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.params.id).select('-password');
+  const user = await User.findById(req.params.id).select("-password").populate('likedUniversities');
 
   if (user) {
     res.json(user);
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -176,7 +177,7 @@ const updateUser = asyncHandler(async (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.email = req.body.email || user.email;
-    user.isAdmin = Boolean(req.body.isAdmin);
+    user.isAdmin = Boolean(req.body.isAdmin) || false;
     user.userType = req.body.userType || user.userType;
 
     const updatedUser = await user.save();
@@ -191,7 +192,7 @@ const updateUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
 });
 
@@ -215,8 +216,89 @@ const likeUniversity = asyncHandler(async (req, res) => {
     res.status(200).json({ likedUniversities: user.likedUniversities });
   } else {
     res.status(404);
-    throw new Error('User not found');
+    throw new Error("User not found");
   }
+});
+
+const searchUser = asyncHandler(async (req, res) => {
+  const { name, isAdmin } = req.query;
+
+  // Create a base filter object to include only active users
+  let filter = {
+    active: true,
+  };
+
+  if (isAdmin != 'true') {
+    // If isAdmin is not true, add the condition to exclude admins
+    filter.$or = [{ isAdmin: false }, { role: 'user' }];
+  }
+
+  if (name) {
+    // Use a regular expression to perform a case-insensitive search on the name
+    filter.name = { $regex: name, $options: 'i' };
+  }
+
+  // Fetch users based on the filter
+  const users = await User.find(filter);
+  res.json(users);
+});
+
+// inactive user
+const inactiveUser = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const user = await User.findByIdAndUpdate(id, { active: false }, { new: true });
+
+  if (user) {
+    res.json({
+      message: 'Đã inactive thành công',
+      user,
+    });
+  } else {
+    res.status(404);
+    throw new Error('Không tìm thấy user');
+  }
+});
+
+// Add user
+const addUser = asyncHandler(async (req, res) => {
+  const name = req.body.name?.trim();
+  const email = req.body.email?.trim();
+  const password = req.body.password?.trim();
+  const role = req.body.role
+
+  // Validate input fields
+  if (!name) {
+    return res.status(400).json({ message: 'Tên là bắt buộc' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).json({ message: 'Email không hợp lệ' });
+  }
+
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 6 ký tự' });
+  }
+
+  // Check if user already exists
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    return res.status(400).json({ message: 'Email đã tồn tại' });
+  }
+
+  // Create a new user
+  const user = new User({
+    name,
+    email,
+    password,
+    role,
+    role
+  });
+
+  // Save the user to the database
+  const createdUser = await user.save();
+  res.status(201).json(createdUser);
 });
 
 export {
@@ -230,4 +312,7 @@ export {
   getUserById,
   updateUser,
   likeUniversity,
+  searchUser,
+  inactiveUser,
+  addUser
 };

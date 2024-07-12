@@ -1,5 +1,5 @@
-import asyncHandler from '../middleware/asyncHandler.js';
-import University from '../models/University.js';
+import asyncHandler from "../middleware/asyncHandler.js";
+import University from "../models/University.js";
 
 // Create a new University
 const createUniversity = asyncHandler(async (req, res) => {
@@ -15,7 +15,26 @@ const createUniversity = asyncHandler(async (req, res) => {
 // Get all Universities
 const getUniversities = asyncHandler(async (req, res) => {
   try {
-    const universities = await University.find();
+    const name = req.query.name?.trim();
+    const city = req.query.city?.trim();
+    const sort = req.query.sort;
+
+    // Build the filter object
+    let filter = {};
+    if (name) {
+      filter.name = { $regex: name, $options: "i" };
+    }
+    if (city) {
+      filter.city = city;
+    }
+
+    // Sort
+    let sortOrder = {};
+    if (sort) {
+      sortOrder.nationalRanking = sort === "asc" ? 1 : -1;
+    }
+    // Fetch universities based on the filter and sort conditions
+    const universities = await University.find(filter).sort(sortOrder);
     res.status(200).json(universities);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -27,7 +46,7 @@ const getUniversityById = asyncHandler(async (req, res) => {
   try {
     const university = await University.findById(req.params.id);
     if (!university) {
-      return res.status(404).json({ message: 'University not found' });
+      return res.status(404).json({ message: "University not found" });
     }
     res.status(200).json(university);
   } catch (error) {
@@ -47,7 +66,7 @@ const updateUniversity = asyncHandler(async (req, res) => {
       }
     );
     if (!university) {
-      return res.status(404).json({ message: 'University not found' });
+      return res.status(404).json({ message: "University not found" });
     }
     res.status(200).json(university);
   } catch (error) {
@@ -60,9 +79,9 @@ const deleteUniversity = asyncHandler(async (req, res) => {
   try {
     const university = await University.findByIdAndDelete(req.params.id);
     if (!university) {
-      return res.status(404).json({ message: 'University not found' });
+      return res.status(404).json({ message: "University not found" });
     }
-    res.status(200).json({ message: 'University deleted successfully' });
+    res.status(200).json({ message: "University deleted successfully" });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
