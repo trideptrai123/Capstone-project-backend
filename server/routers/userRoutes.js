@@ -14,6 +14,7 @@ import {
   inactiveUser,
   addUser,
   unlikeUniversity,
+  changePassword,
 } from '../controllers/userController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -23,6 +24,8 @@ router.route('/').post(registerUser).get(protect, admin, getUsers);
 router.post('/auth', authUser);
 router.post('/logout', logoutUser);
 router.post('/add', addUser);
+router.put('/change-pass',protect, changePassword);
+
 
 router
   .route('/profile')

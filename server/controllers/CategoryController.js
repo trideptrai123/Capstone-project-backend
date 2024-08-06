@@ -6,7 +6,9 @@ import BlogPost from "../models/BlogPost.js";
 // Create a new category
 const createCategory = asyncHandler(async (req, res) => {
   const { name } = req.body;
-  console.log(name)
+  if(!name?.trim()){
+    return res.status(400).json({ message: "Tên danh mục bắt buộc" });
+  }
   // Kiểm tra trùng tên category
   const existingCategory = await CategoryPost.findOne({ name });
   if (existingCategory) {
@@ -48,6 +50,9 @@ const getDetailCategory = asyncHandler(async (req, res) => {
 // Update a category by ID
     const updateCategory = asyncHandler(async (req, res) => {
         const { name } = req.body;
+        if(!name?.trim()){
+          return res.status(400).json({ message: "Tên danh mục bắt buộc" });
+        }
         const category = await CategoryPost.findById(req.params.id);
         if (!category) {
           return res.status(404).json({ message: "Không tồn tại danh mục" });

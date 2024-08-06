@@ -25,7 +25,26 @@ const authUser = asyncHandler(async (req, res) => {
     });
   } else {
     res.status(401);
-    throw new Error("Invalid email or password");
+    throw new Error("Sai email hoặc mật khẩu");
+  }
+});
+
+export const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  if (user && (await user.matchPassword(currentPassword))) {
+    if (newPassword.length < 6) {
+      res.status(400);
+      throw new Error('Password should be at least 6 characters');
+    }
+    user.password = newPassword;
+    await user.save();
+    res.status(200).json({ message: 'Password updated successfully' });
+  } else {
+    res.status(400);
+    throw new Error('Current password is incorrect');
   }
 });
 
