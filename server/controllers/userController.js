@@ -71,7 +71,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
   // If user is successfully created, generate token and return user info
   if (user) {
-    generateToken(res, user._id);
+    const token = generateToken(res, user._id);
 
     res.status(201).json({
       _id: user._id,
@@ -79,7 +79,8 @@ const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       isAdmin: user.isAdmin,
       userType: user.userType,
-      likedUniversities: user.likedUniversities, // Include likedUniversities
+      likedUniversities: user.likedUniversities,
+      token // Include likedUniversities
     });
   } else {
     res.status(400);
@@ -288,7 +289,7 @@ const searchUser = asyncHandler(async (req, res) => {
   }
 
   // Fetch users based on the filter
-  const users = await User.find(filter);
+  const users = await User.find(filter).sort({ createdAt: -1 });
   res.json(users);
 });
 
