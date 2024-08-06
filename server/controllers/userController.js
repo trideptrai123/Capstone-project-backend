@@ -11,7 +11,7 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id);
+   const token =  generateToken(res, user._id);
 
     res.status(200).json({
       _id: user._id,
@@ -20,7 +20,8 @@ const authUser = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
-      role:user.role
+      role:user.role,
+      token:token
      // Include likedUniversities
     });
   } else {
