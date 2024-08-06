@@ -14,8 +14,6 @@ import messageRoutes from "./routers/messageRoutes.js";
 import teacherRoutes from "./routers/teacherRoutes.js";
 import requestRoutes from "./routers/requestRoutes.js";
 
-
-
 import { createServer } from "http"; // Import module HTTP
 import { Server } from "socket.io"; // Import Socket.IO
 
@@ -28,7 +26,7 @@ import { socketConfig } from "./socket.js";
 
 const app = express();
 const server = createServer(app);
-const io  = socketConfig.init(server)
+const io = socketConfig.init(server);
 // = new Server(server, {
 //   cors: {
 //     origin: "http://localhost:3000", // URL của frontend
@@ -52,8 +50,15 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
 const corsOptions = {
-   // URL của frontend// origin: "http://localhost:3000",
-   origin: ['http://localhost:3000', 'http://localhost:3001','http://localhost:3002',"https://capstone-project-umno.onrender.com","https://capstone-project-admin-fe.onrender.com"],
+  // URL của frontend// origin: "http://localhost:3000",
+  origin: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "https://capstone-project-umno.onrender.com",
+    "https://capstone-project-admin-fe.onrender.com",
+    "https://shop2-4ed7a.firebaseapp.com",
+  ],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -70,14 +75,11 @@ app.use("/api/major", majorRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/request", requestRoutes);
 
-
-
-
 // Socket.IO setup
 io.on("connection", (socket) => {
-  console.log("connnect")
+  console.log("connnect");
   socket.on("joinRoom", (roomId) => {
-    console.log("join room" + roomId)
+    console.log("join room" + roomId);
     socket.join(roomId);
   });
 
@@ -92,7 +94,6 @@ io.on("connection", (socket) => {
     io.to(data.roomId).emit("newImage", data);
   });
 
-
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
@@ -100,7 +101,7 @@ io.on("connection", (socket) => {
 
 app.use(notFound);
 app.use(errorHandler);
-app.set("io",io)
+app.set("io", io);
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () =>
