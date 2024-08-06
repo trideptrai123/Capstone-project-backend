@@ -31,6 +31,10 @@ const UniversitySchema = new Schema({
     type: String,
     required: true,
   },
+  logo: {
+    type: String,
+    required: false,
+  },
   city: {
     type: String,
     required: true,
@@ -38,13 +42,13 @@ const UniversitySchema = new Schema({
   subjects: [SubjectSchema],
   teachingStandards: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
     max: 100,
   },
   studentQuality: {
     type: Number,
-    required: true,
+    required: false,
     min: 0,
     max: 100,
   },

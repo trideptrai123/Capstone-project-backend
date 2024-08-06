@@ -9,7 +9,12 @@ import categoryRoutes from "./routers/categoryRoutes.js";
 import blogPostRoutes from "./routers/blogPostRoutes.js";
 import commentBlogPostRoutes from "./routers/commentBlogRoutes.js";
 import roomRoutes from "./routers/roomRoutes.js";
+import majorRoutes from "./routers/majorRoutes.js";
 import messageRoutes from "./routers/messageRoutes.js";
+import teacherRoutes from "./routers/teacherRoutes.js";
+import requestRoutes from "./routers/requestRoutes.js";
+
+
 
 import { createServer } from "http"; // Import module HTTP
 import { Server } from "socket.io"; // Import Socket.IO
@@ -47,7 +52,8 @@ mongoose
   .catch((err) => console.error("Could not connect to MongoDB...", err));
 
 const corsOptions = {
-  origin: "http://localhost:3000", // URL của frontend
+   // URL của frontend// origin: "http://localhost:3000",
+   origin: ['http://localhost:3000', 'http://localhost:3001','http://localhost:3002'],
   credentials: true,
   optionSuccessStatus: 200,
 };
@@ -60,6 +66,12 @@ app.use("/api/posts/comment", commentBlogPostRoutes);
 app.use("/api/posts", blogPostRoutes);
 app.use("/api/message", messageRoutes);
 app.use("/api/room", roomRoutes);
+app.use("/api/major", majorRoutes);
+app.use("/api/teacher", teacherRoutes);
+app.use("/api/request", requestRoutes);
+
+
+
 
 // Socket.IO setup
 io.on("connection", (socket) => {

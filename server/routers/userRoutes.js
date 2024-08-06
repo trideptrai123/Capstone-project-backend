@@ -13,6 +13,7 @@ import {
   searchUser,
   inactiveUser,
   addUser,
+  unlikeUniversity,
 } from '../controllers/userController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -26,9 +27,15 @@ router.post('/add', addUser);
 router
   .route('/profile')
   .get(protect, getUserProfile)
+  router.get("/search",searchUser)
+  router.put("/inactive/:id",inactiveUser)
+  
+  router
+  .route('/profile/:id')
   .put(protect, updateUserProfile);
   router.get("/search",searchUser)
   router.put("/inactive/:id",inactiveUser)
+
 
 
 router
@@ -39,5 +46,7 @@ router
 
 
 router.put('/like/:id', protect, likeUniversity); // Route để like/unlike university
+router.put('/unlike/:id', protect, unlikeUniversity); // Route để like/unlike university
+
 
 export default router;

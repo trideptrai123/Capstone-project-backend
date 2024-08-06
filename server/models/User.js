@@ -7,9 +7,25 @@ const userSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    avatar: {
+      type: String,
+      required: false,
+    },
+    address: {
+      type: String,
+      required: false,
+      
+    },
+    gender:{
+      type: String,
+      required: false,
+      enum: ["Nam","Nữ",""],
+    },
+
     email: {
       type: String,
       required: true,
+      unique: true,
     },
     password: {
       type: String,
@@ -23,10 +39,9 @@ const userSchema = mongoose.Schema(
     role: {
       type: String,
       required: true,
-      enum: ["admin", "staff", "user"],
+      enum: ["admin", "staff", "user", "teacher"],
       default: "user",
     },
-
     isAdmin: {
       type: Boolean,
       required: true,
@@ -37,13 +52,51 @@ const userSchema = mongoose.Schema(
       required: true,
       default: true,
     },
-
     likedUniversities: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "University",
       },
     ],
+    // Fields specific to staff and teacher roles
+    universityId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "University",
+      required: function() {
+        return this.role === "teacher" || this.role === "staff";
+      },
+    },
+    yearsExperience: {
+      type: Number,
+      required: function() {
+        return this.role === "teacher";
+      },
+    },
+    certificates: [
+      {
+        type: String,
+        required: function() {
+          return this.role === "teacher";
+        },
+      },
+    ],
+    rating: {
+      type: Number,
+      required: function() {
+        return this.role === "teacher";
+      },
+    },
+    dateOfBirth: {
+      type: Date,
+      required: function() {
+        return this.role === "teacher";
+      },
+    },
+    description: {
+      type: String,
+      required: false,
+      default: "",
+    },
   },
   {
     timestamps: true,

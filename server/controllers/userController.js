@@ -13,13 +13,15 @@ const authUser = asyncHandler(async (req, res) => {
   if (user && (await user.matchPassword(password))) {
     generateToken(res, user._id);
 
-    res.json({
+    res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
       userType: user.userType,
-      likedUniversities: user.likedUniversities, // Include likedUniversities
+      likedUniversities: user.likedUniversities,
+      role:user.role
+     // Include likedUniversities
     });
   } else {
     res.status(401);
@@ -78,7 +80,6 @@ const logoutUser = (req, res) => {
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).populate("likedUniversities");
-
   if (user) {
     res.json({
       _id: user._id,
@@ -87,7 +88,13 @@ const getUserProfile = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
-      role:user?.role
+      role:user?.role,
+      universityId:user.universityId || null,
+      gender:user.gender,
+      address:user.address,
+      avatar:user.avatar,
+      dateOfBirth:user.dateOfBirth,
+      description:user.description
     });
   } else {
     res.status(404);
@@ -98,34 +105,34 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
-const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+// const updateUserProfile = asyncHandler(async (req, res) => {
+//   const user = await User.findById(req.user._id);
 
-  if (user) {
-    user.name = req.body.name || user.name;
-    user.email = req.body.email || user.email;
-    user.userType = req.body.userType || user.userType;
+//   if (user) {
+//     user.name = req.body.name || user.name;
+//     user.email = req.body.email || user.email;
+//     user.userType = req.body.userType || user.userType;
 
-    if (req.body.password) {
-      user.password = req.body.password;
-    }
+//     if (req.body.password) {
+//       user.password = req.body.password;
+//     }
 
-    const updatedUser = await user.save();
+//     const updatedUser = await user.save();
 
-    res.json({
-      _id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      userType: updatedUser.userType,
-      isAdmin: updatedUser.isAdmin,
-      likedUniversities: updatedUser.likedUniversities, // Include likedUniversities
-      token: generateToken(updatedUser._id),
-    });
-  } else {
-    res.status(404);
-    throw new Error("User not found");
-  }
-});
+//     res.json({
+//       _id: updatedUser._id,
+//       name: updatedUser.name,
+//       email: updatedUser.email,
+//       userType: updatedUser.userType,
+//       isAdmin: updatedUser.isAdmin,
+//       likedUniversities: updatedUser.likedUniversities, // Include likedUniversities
+//       token: generateToken(updatedUser._id),
+//     });
+//   } else {
+//     res.status(404);
+//     throw new Error("User not found");
+//   }
+// });
 
 // @desc    Get all users
 // @route   GET /api/users
@@ -201,6 +208,7 @@ const updateUser = asyncHandler(async (req, res) => {
 // @access  Private
 const likeUniversity = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
+  console.log(user)
 
   if (user) {
     const universityId = req.params.id;
@@ -208,6 +216,27 @@ const likeUniversity = asyncHandler(async (req, res) => {
 
     if (index === -1) {
       user.likedUniversities.push(universityId);
+    } else {
+      user.likedUniversities.splice(index, 1);
+    }
+
+    await user.save();
+    res.status(200).json({ likedUniversities: user.likedUniversities });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+export const unlikeUniversity = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  console.log(user)
+
+  if (user) {
+    const universityId = req.params.id;
+    const index = user.likedUniversities.indexOf(universityId);
+
+    if (index === -1) {
+      res.status(400).json({ message: "Không tìm thấy trường đại học " });
     } else {
       user.likedUniversities.splice(index, 1);
     }
@@ -266,10 +295,17 @@ const addUser = asyncHandler(async (req, res) => {
   const email = req.body.email?.trim();
   const password = req.body.password?.trim();
   const role = req.body.role
+  const universityId = req.body.universityId || null
+
 
   // Validate input fields
   if (!name) {
     return res.status(400).json({ message: 'Tên là bắt buộc' });
+  }
+  if(role == "staff" || role == "teacher"){
+    if(!universityId){
+      return res.status(400).json({ message: 'Trường học là bắt buộc' });
+    }
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -293,7 +329,7 @@ const addUser = asyncHandler(async (req, res) => {
     email,
     password,
     role,
-    role
+    universityId
   });
 
   // Save the user to the database
@@ -301,12 +337,39 @@ const addUser = asyncHandler(async (req, res) => {
   res.status(201).json(createdUser);
 });
 
+export const updateUserProfile = async (req, res) => {
+  const { id: userId } = req.params;
+  const updateData = req.body;
+
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).send({ message: "Người dùng không tồn tại." });
+    }
+
+    // Update the fields that are provided in the request body
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] !== undefined) {
+        user[key] = updateData[key];
+      }
+    });
+
+    // Save the updated user data
+    await user.save();
+
+    res.status(200).send({ message: "Cập nhật thông tin người dùng thành công.", user });
+  } catch (error) {
+    res.status(500).send({ message: "Lỗi khi cập nhật thông tin người dùng.", error });
+  }
+};
+
 export {
   authUser,
   registerUser,
   logoutUser,
   getUserProfile,
-  updateUserProfile,
   getUsers,
   deleteUser,
   getUserById,
