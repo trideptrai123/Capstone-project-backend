@@ -58,6 +58,7 @@ const corsOptions = {
     "https://capstone-project-umno.onrender.com",
     "https://capstone-project-admin-fe.onrender.com",
     "https://shop2-4ed7a.firebaseapp.com",
+    "https://test-ccb51.firebaseapp.com"
   ],
   credentials: true,
   optionSuccessStatus: 200,
