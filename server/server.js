@@ -53,7 +53,7 @@ mongoose
 
 const corsOptions = {
    // URL của frontend// origin: "http://localhost:3000",
-   origin: ['http://localhost:3000', 'http://localhost:3001','http://localhost:3002',"https://capstone-project-umno.onrender.com"],
+   origin: ['http://localhost:3000', 'http://localhost:3001','http://localhost:3002',"https://capstone-project-umno.onrender.com","https://capstone-project-admin-fe.onrender.com"],
   credentials: true,
   optionSuccessStatus: 200,
 };
