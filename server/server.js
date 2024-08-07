@@ -59,7 +59,7 @@ const corsOptions = {
     "https://capstone-project-admin-fe.onrender.com",
     "https://shop2-4ed7a.firebaseapp.com",
     "https://test-ccb51.firebaseapp.com",
-    "https://ranking-school-client.vercel.app/"
+    "https://ranking-school-client.vercel.app"
   ],
   credentials: true,
   optionSuccessStatus: 200,
