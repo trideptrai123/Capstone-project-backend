@@ -24,7 +24,18 @@ const SubjectSchema = new Schema({
     },
   },
 });
-
+const nationalRankingSchema = new mongoose.Schema({
+  year: {
+    type: Number,
+    required: true,
+  },
+  rank: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 100, // Assuming ranks are between 1 and 100
+  },
+});
 // Define the University schema
 const UniversitySchema = new Schema({
   name: {
@@ -59,10 +70,9 @@ const UniversitySchema = new Schema({
     max: 100,
   },
   nationalRanking: {
-    type: Number,
+    type: [nationalRankingSchema],
     required: true,
-    min: 0,
-    max: 100,
+   
   },
   description: { type: String, required: true },
   website: { type: String, required: true },

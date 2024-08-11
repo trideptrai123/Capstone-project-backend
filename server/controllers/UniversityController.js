@@ -28,7 +28,6 @@ export const createUniversity = asyncHandler(async (req, res) => {
   const trimmedAdmissionCode = admissionCode.trim();
   const trimmedDescription = description.trim();
   const trimmedWebsite = website ? website.trim() : "";
-  const trimmedNationalRanking = nationalRanking.trim();
   const trimmedFacilitiesStandards = facilitiesStandards.trim();
   const trimmedLogo = logo ? logo.trim() : "";
 
@@ -54,10 +53,23 @@ export const createUniversity = asyncHandler(async (req, res) => {
       .json({ message: "Mã tuyển sinh không được để trống." });
   if (!trimmedDescription)
     return res.status(400).json({ message: "Mô tả không được để trống." });
-  if (!trimmedNationalRanking)
+  if (!Array.isArray(nationalRanking) || nationalRanking.length === 0)
     return res
       .status(400)
-      .json({ message: "Xếp hạng quốc gia không được để trống." });
+      .json({ message: "Xếp hạng quốc gia phải là một mảng và không được để trống." });
+
+  // Validate each ranking in the array
+  for (const ranking of nationalRanking) {
+    if (!ranking.year || !ranking.rank)
+      return res
+        .status(400)
+        .json({ message: "Mỗi mục xếp hạng phải có năm và thứ hạng." });
+    if (ranking.rank < 1 || ranking.rank > 100)
+      return res
+        .status(400)
+        .json({ message: "Thứ hạng phải từ 1 đến 100." });
+  }
+
   if (
     trimmedFacilitiesStandards === "" ||
     trimmedFacilitiesStandards < 0 ||
@@ -85,7 +97,7 @@ export const createUniversity = asyncHandler(async (req, res) => {
       admissionCode: trimmedAdmissionCode,
       description: trimmedDescription,
       website: trimmedWebsite,
-      nationalRanking: trimmedNationalRanking,
+      nationalRanking,
       facilitiesStandards: trimmedFacilitiesStandards,
       logo: trimmedLogo,
     });
@@ -96,6 +108,7 @@ export const createUniversity = asyncHandler(async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
 
 export const updateUniversity = asyncHandler(async (req, res) => {
   const {
@@ -121,7 +134,6 @@ export const updateUniversity = asyncHandler(async (req, res) => {
   const trimmedAdmissionCode = admissionCode.trim();
   const trimmedDescription = description.trim();
   const trimmedWebsite = website ? website.trim() : "";
-  const trimmedNationalRanking = nationalRanking;
   const trimmedFacilitiesStandards = facilitiesStandards;
   const trimmedLogo = logo ? logo.trim() : "";
 
@@ -147,10 +159,23 @@ export const updateUniversity = asyncHandler(async (req, res) => {
       .json({ message: "Mã tuyển sinh không được để trống." });
   if (!trimmedDescription)
     return res.status(400).json({ message: "Mô tả không được để trống." });
-  if (!trimmedNationalRanking)
+  if (!Array.isArray(nationalRanking) || nationalRanking.length === 0)
     return res
       .status(400)
-      .json({ message: "Xếp hạng quốc gia không được để trống." });
+      .json({ message: "Xếp hạng quốc gia phải là một mảng và không được để trống." });
+
+  // Validate each ranking in the array
+  for (const ranking of nationalRanking) {
+    if (!ranking.year || !ranking.rank)
+      return res
+        .status(400)
+        .json({ message: "Mỗi mục xếp hạng phải có năm và thứ hạng." });
+    if (ranking.rank < 1 || ranking.rank > 100)
+      return res
+        .status(400)
+        .json({ message: "Thứ hạng phải từ 1 đến 100." });
+  }
+
   if (
     trimmedFacilitiesStandards === "" ||
     trimmedFacilitiesStandards < 0 ||
@@ -181,7 +206,7 @@ export const updateUniversity = asyncHandler(async (req, res) => {
         admissionCode: trimmedAdmissionCode,
         description: trimmedDescription,
         website: trimmedWebsite,
-        nationalRanking: trimmedNationalRanking,
+        nationalRanking,
         facilitiesStandards: trimmedFacilitiesStandards,
         logo: trimmedLogo,
       },
@@ -199,6 +224,7 @@ export const updateUniversity = asyncHandler(async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
 
 // Get all Universities
 const getUniversities = asyncHandler(async (req, res) => {
@@ -296,7 +322,7 @@ const deleteUniversity = asyncHandler(async (req, res) => {
 });
 export const getRanking = async (req, res) => {
   try {
-    const { name, year, majorName, sort, city, facultyQuality ,userId } = req.query;
+    const { name, year, majorName, sort, city, facultyQuality, userId } = req.query;
     let sortField = "",
       sortOrder = "";
 
@@ -314,21 +340,11 @@ export const getRanking = async (req, res) => {
       query.city = { $regex: new RegExp(city, "i") }; // Tìm kiếm theo thành phố
     }
 
-    const yearFilter = year ? { year: parseInt(year) } : {};
-
     // Lấy danh sách các trường đại học thỏa mãn điều kiện
     const universities = await University.find(query).lean();
     const universityIds = universities.map((univ) => univ._id);
 
     // Tạo filter cho major
-    // const majorFilter = { universityId: { $in: universityIds } };
-    // if (majorName) {
-    //   majorFilter.name = { $regex: new RegExp(majorName, 'i') };
-    // }
-
-    // const majorIds = await Major.find(majorFilter).distinct('_id');
-
-    // Tính toán điểm trung bình
     const results = await Promise.all(
       universities.map(async (univ) => {
         const majorFilter = { universityId: univ._id };
@@ -339,11 +355,8 @@ export const getRanking = async (req, res) => {
         const majorIds = await Major.find(majorFilter).distinct("_id");
         const majorHistories = await MajorHistory.find({
           majorId: { $in: majorIds },
-          ...yearFilter,
+          ...(year ? { year: parseInt(year) } : {}),
         }).populate("majorId");
-
-        // console.log(yearFilter)
-        // console.log(majorHistories)
 
         let totalMajorScore = 0;
         let totalTeacherScore = 0;
@@ -355,8 +368,7 @@ export const getRanking = async (req, res) => {
           if (history.majorId.universityId.toString() === univ._id.toString()) {
             if (
               !majorName ||
-              history.majorId.name.toLowerCase() ===
-                majorName.trim().toLowerCase()
+              history.majorId.name.toLowerCase() === majorName.trim().toLowerCase()
             ) {
               majorCount++;
               totalMajorScore += history.courseEvaluations;
@@ -365,9 +377,7 @@ export const getRanking = async (req, res) => {
                 teacherCount++;
                 totalTeacherScore += teacher.yearsExperience;
 
-                const teacherInfo = await User.findById(
-                  teacher.teacherId
-                ).select("rating");
+                const teacherInfo = await User.findById(teacher.teacherId).select("rating");
                 if (teacherInfo) {
                   totalTeacherRating += teacherInfo.rating;
                 }
@@ -376,42 +386,41 @@ export const getRanking = async (req, res) => {
           }
         }
 
-         // Kiểm tra nếu có userId và trường có trong danh sách yêu thích của user
-         let isLike = false;
-         if (userId) {
-           const user = await User.findById(userId).select('likedUniversities');
-           if (user && user.likedUniversities.includes(univ._id)) {
-             isLike = true;
-           }
-         }
+        // Get the rank for the specific year
+        const rankingForYear = year
+          ? univ.nationalRanking.find((rank) => rank.year == parseInt(year))
+          : null;
+
+        // Kiểm tra nếu có userId và trường có trong danh sách yêu thích của user
+        let isLike = false;
+        if (userId) {
+          const user = await User.findById(userId).select("likedUniversities");
+          if (user && user.likedUniversities.includes(univ._id)) {
+            isLike = true;
+          }
+        }
+
         return {
           ...univ,
+          nationalRanking: rankingForYear ? rankingForYear.rank : null,
           averageMajorScore: majorCount ? totalMajorScore / majorCount : 0,
-          averageTeacherScore: teacherCount
-            ? totalTeacherScore / teacherCount
-            : 0,
-          averageTeacherRating: teacherCount
-            ? totalTeacherRating / teacherCount
-            : 0,
-          have: (majorName && majorHistories.length === 0) ? false : true,
-          isLike
+          averageTeacherScore: teacherCount ? totalTeacherScore / teacherCount : 0,
+          averageTeacherRating: teacherCount ? totalTeacherRating / teacherCount : 0,
+          have: majorName && majorHistories.length === 0 ? false : true,
+          isLike,
         };
       })
     );
 
     // Lọc các trường không thỏa mãn điều kiện
     const filteredResults = results.filter((univ) => {
-      if ( !univ.have) {
+      if (!univ.have) {
         return false;
       }
       if (facultyQuality) {
         const isMapRating =
-          (facultyQuality === "1" &&
-            univ.averageTeacherRating >= 1 &&
-            univ.averageTeacherRating <= 3) ||
-          (facultyQuality === "3" &&
-            univ.averageTeacherRating >= 4 &&
-            univ.averageTeacherRating <= 5);
+          (facultyQuality === "1" && univ.averageTeacherRating >= 1 && univ.averageTeacherRating <= 3) ||
+          (facultyQuality === "3" && univ.averageTeacherRating >= 4 && univ.averageTeacherRating <= 5);
         return isMapRating;
       }
       return true;
@@ -446,6 +455,7 @@ export const getRanking = async (req, res) => {
     res.status(500).send({ message: "Lỗi khi lấy dữ liệu xếp hạng." });
   }
 };
+
 
 
 export const getStats = async (req, res) => {
