@@ -232,6 +232,7 @@ const getUniversities = asyncHandler(async (req, res) => {
     const name = req.query.name?.trim();
     const city = req.query.city?.trim();
     const sort = req.query.sort;
+    const year = req.query.year ? parseInt(req.query.year) : null;
 
     // Build the filter object
     let filter = {};
@@ -243,17 +244,33 @@ const getUniversities = asyncHandler(async (req, res) => {
     }
 
     // Sort
-    let sortOrder = {};
-    if (sort) {
-      sortOrder.nationalRanking = sort === "asc" ? 1 : -1;
-    }
+    let sortOrder = { updatedAt: -1 }; // Default sort by updatedAt, descending
+
+    // if (sort) {
+    //   sortOrder[`nationalRanking.rank${year}`] = sort === "asc" ? 1 : -1;
+    // }
+
     // Fetch universities based on the filter and sort conditions
-    const universities = await University.find(filter).sort(sortOrder);
+    let universities = await University.find(filter).sort(sortOrder);
+
+    // Map over the results to adjust the nationalRanking based on the year
+    universities = universities.map((univ) => {
+      const rankingForYear = year
+        ? univ.nationalRanking.find((rank) => rank.year === year)
+        : null;
+      return {
+        ...univ._doc,
+        nationalRanking: rankingForYear ? rankingForYear.rank : null,
+      };
+    });
+
     res.status(200).json(universities);
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
+
+
 
 // Get a single University by ID
 const getUniversityById = asyncHandler(async (req, res) => {
@@ -363,8 +380,10 @@ export const getRanking = async (req, res) => {
         let majorCount = 0;
         let teacherCount = 0;
         let totalTeacherRating = 0;
+        let admissionScore = 0;
 
         for (const history of majorHistories) {
+          admissionScore = history.admissionScore
           if (history.majorId.universityId.toString() === univ._id.toString()) {
             if (
               !majorName ||
@@ -408,6 +427,7 @@ export const getRanking = async (req, res) => {
           averageTeacherRating: teacherCount ? totalTeacherRating / teacherCount : 0,
           have: majorName && majorHistories.length === 0 ? false : true,
           isLike,
+          admissionScore
         };
       })
     );

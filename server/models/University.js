@@ -88,7 +88,7 @@ const UniversitySchema = new Schema({
     type: String,
     required: true,
   },
-});
+}, { timestamps: true });
 
 const University =
   mongoose.models.University || mongoose.model('University', UniversitySchema);

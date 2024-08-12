@@ -2,6 +2,8 @@ import Request from "../models/Request.js";
 import MajorHistory from "../models/MajorHistory.js";
 import User from "../models/User.js";  // Make sure to import the User model
 import University from "../models/University.js";  // Make sure to import the University model
+import { socketConfig } from "../socket.js";
+import Notification from "../models/Notyfication.js";
 
 // Create a new request
 export const createRequest = async (req, res) => {
@@ -44,8 +46,29 @@ export const createRequest = async (req, res) => {
   try {
     const request = new Request({ teacherId, universityId, majorId, year });
     await request.save();
+     // Truy vấn tất cả các user có role là "Staff" thuộc trường đại học
+     const staffMembers = await User.find({ universityId, role: 'staff' });
+
+     // Gửi thông báo qua Socket.IO cho các staff members
+     const io = socketConfig.getIO();
+     if(staffMembers?.length > 0){
+      console.log(staffMembers[0].universityId.toString())
+      io.to(staffMembers[0].universityId.toString()).emit("noty", {
+        message: `Yêu cầu mới từ giáo viên ${teacher.name}.`,
+      });
+     }
+    
+  // Tạo thông báo trong database cho các nhân viên
+  const notification = new Notification({
+    content: `Yêu cầu mới từ giáo viên ${teacher.name}.`,
+    receive: staffMembers.map(staff => ({ userId: staff._id })),
+    type: 'request'
+  });
+
+  await notification.save();
     res.status(201).send(request);
   } catch (error) {
+    console.log(error)
     res.status(500).send({ message: "Lỗi khi tạo yêu cầu.", error });
   }
 };

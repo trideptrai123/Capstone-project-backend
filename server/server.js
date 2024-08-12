@@ -13,6 +13,7 @@ import majorRoutes from "./routers/majorRoutes.js";
 import messageRoutes from "./routers/messageRoutes.js";
 import teacherRoutes from "./routers/teacherRoutes.js";
 import requestRoutes from "./routers/requestRoutes.js";
+import notyRoutes from "./routers/notyRoutes.js";
 
 import { createServer } from "http"; // Import module HTTP
 import { Server } from "socket.io"; // Import Socket.IO
@@ -77,6 +78,8 @@ app.use("/api/room", roomRoutes);
 app.use("/api/major", majorRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/request", requestRoutes);
+app.use("/api/noty", notyRoutes);
+
 
 // Socket.IO setup
 io.on("connection", (socket) => {
@@ -100,6 +103,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("Client disconnected");
   });
+  socket.on("joinUniversity", (universityId) => {
+    console.log("join " +  universityId)
+    socket.join(universityId);
+  });
+ 
 });
 
 app.use(notFound);
