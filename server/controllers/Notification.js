@@ -25,9 +25,9 @@ export const getListNotyByUser = async (req, res) => {
 
 //
 export const viewNoty = async (req, res) => {
-    const { userId } = req.body;
+    const { userId } = req.params;
     const { notyIds } = req.body;
-  
+     console.log(userId)
     try {
       for (const notyId of notyIds) {
         await Notification.updateOne(
@@ -38,6 +38,7 @@ export const viewNoty = async (req, res) => {
   
       res.status(200).json({ message: 'Đã cập nhật trạng thái xem thông báo.' });
     } catch (error) {
+      console.log(error)
       res.status(500).json({ message: 'Lỗi khi cập nhật trạng thái thông báo.', error });
     }
   }

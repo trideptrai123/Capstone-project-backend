@@ -466,6 +466,16 @@ export const getRanking = async (req, res) => {
             ? a.averageTeacherRating - b.averageTeacherRating
             : b.averageTeacherRating - a.averageTeacherRating;
         }
+        else if (sortField === "name") {
+          return sortOrder === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+        }
+        else if (sortField === "facility") {
+          return sortOrder === "asc"
+            ? a.facilitiesStandards - b.facilitiesStandards
+            : b.facilitiesStandards - a.facilitiesStandards;
+        }
       });
     }
 

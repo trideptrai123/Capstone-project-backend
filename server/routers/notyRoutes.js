@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.route("/:userId").get(getListNotyByUser)
 router.route("/").post(createNotification)
-router.route("/viewed").put(viewNoty)
+router.route("/viewed/:userId").put(viewNoty)
 
 
 
