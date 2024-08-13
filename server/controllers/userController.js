@@ -207,6 +207,8 @@ const updateUser = asyncHandler(async (req, res) => {
     user.email = req.body.email || user.email;
     user.isAdmin = Boolean(req.body.isAdmin) || false;
     user.userType = req.body.userType || user.userType;
+    user.universityId = req.body.universityId || user.universityId;
+
 
     const updatedUser = await user.save();
 
