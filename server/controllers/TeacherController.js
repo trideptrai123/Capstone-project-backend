@@ -136,7 +136,7 @@ export const searchTeachers = async (req, res) => {
     if (name) query.name = new RegExp(name.trim(), "i");
     if (universityId) query.universityId = universityId;
 
-    const teachers = await User.find(query).populate("universityId", "name");
+    const teachers = await User.find(query).populate("universityId", "name").sort({ createdAt: -1 });;
 
     res.status(200).send(teachers);
   } catch (error) {

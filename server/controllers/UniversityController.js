@@ -5,6 +5,8 @@ import Major from "../models/Major.js";
 import MajorHistory from "../models/MajorHistory.js";
 import mongoose from "mongoose";
 import BlogPost from "../models/BlogPost.js";
+import Review from "../models/Review.js";
+
 
 export const createUniversity = asyncHandler(async (req, res) => {
   const {
@@ -275,35 +277,34 @@ const getUniversities = asyncHandler(async (req, res) => {
 // Get a single University by ID
 const getUniversityById = asyncHandler(async (req, res) => {
   try {
+    const currentYear = new Date().getFullYear(); // Lấy năm hiện tại
+
+    // Tìm thông tin trường theo ID
     const university = await University.findById(req.params.id);
     if (!university) {
-      return res.status(404).json({ message: "University not found" });
+      return res.status(404).json({ message: "Không tìm thấy trường đại học." });
     }
-    res.status(200).json(university);
+
+    // Tính toán rating trung bình của giảng viên cho trường theo năm hiện tại
+    const reviews = await Review.aggregate([
+      { $match: { universityId: new mongoose.Types.ObjectId(req.params.id), year: currentYear } },
+      { $group: { _id: null, averageRating: { $avg: "$rating" } } }
+    ]);
+
+    const averageRating = reviews.length > 0 ? reviews[0].averageRating : null;
+
+    // Lấy thứ hạng của trường theo năm hiện tại
+    const rankingForYear = university.nationalRanking.find(rank => rank.year === currentYear);
+
+    res.status(200).json({
+      ...university.toObject(),
+      averageRating: averageRating || "Chưa có đánh giá.",
+      currentRanking: rankingForYear ? rankingForYear.rank : "Không có dữ liệu xếp hạng."
+    });
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 });
-
-// Update a University by ID
-// const updateUniversity = asyncHandler(async (req, res) => {
-//   try {
-//     const university = await University.findByIdAndUpdate(
-//       req.params.id,
-//       req.body,
-//       {
-//         new: true,
-//         runValidators: true,
-//       }
-//     );
-//     if (!university) {
-//       return res.status(404).json({ message: "University not found" });
-//     }
-//     res.status(200).json(university);
-//   } catch (error) {
-//     res.status(400).json({ message: error.message });
-//   }
-// });
 
 // Delete a University by ID
 const deleteUniversity = asyncHandler(async (req, res) => {

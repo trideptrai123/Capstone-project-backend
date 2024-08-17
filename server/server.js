@@ -14,6 +14,8 @@ import messageRoutes from "./routers/messageRoutes.js";
 import teacherRoutes from "./routers/teacherRoutes.js";
 import requestRoutes from "./routers/requestRoutes.js";
 import notyRoutes from "./routers/notyRoutes.js";
+import reviewRoutes from "./routers/reviewRoutes.js";
+
 
 import { createServer } from "http"; // Import module HTTP
 import { Server } from "socket.io"; // Import Socket.IO
@@ -79,6 +81,8 @@ app.use("/api/major", majorRoutes);
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/request", requestRoutes);
 app.use("/api/noty", notyRoutes);
+app.use("/api/review", reviewRoutes);
+
 
 
 // Socket.IO setup
