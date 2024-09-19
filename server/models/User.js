@@ -34,7 +34,6 @@ const userSchema = mongoose.Schema(
     userType: {
       type: String,
       required: false,
-      enum: ["Student university", "High school student"],
     },
     role: {
       type: String,
@@ -47,25 +46,35 @@ const userSchema = mongoose.Schema(
       required: true,
       default: false,
     },
+    isUniversity: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     active: {
       type: Boolean,
       required: true,
       default: true,
     },
+    compareUniversities: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "University",
+      },
+    ],
     likedUniversities: [
       {
         type: mongoose.Schema.Types.ObjectId,
         ref: "University",
       },
     ],
-    // Fields specific to staff and teacher roles
     universityId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "University",
-      required: function() {
-        return this.role === "teacher" || this.role === "staff";
-      },
+
     },
+    // Fields specific to staff and teacher roles
+ 
     yearsExperience: {
       type: Number,
       required: function() {

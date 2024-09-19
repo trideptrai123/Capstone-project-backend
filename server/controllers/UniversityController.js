@@ -338,6 +338,8 @@ const deleteUniversity = asyncHandler(async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+
 export const getRanking = async (req, res) => {
   try {
     const { name, year, majorName, sort, city, facultyQuality, userId } = req.query;
@@ -420,6 +422,14 @@ export const getRanking = async (req, res) => {
           }
         }
 
+        let isCompare = false;
+        if (userId) {
+          const user = await User.findById(userId).select("compareUniversities");
+          if (user && user.compareUniversities.includes(univ._id)) {
+            isCompare = true;
+          }
+        }
+
         return {
           ...univ,
           nationalRanking: rankingForYear ? rankingForYear.rank : null,
@@ -428,6 +438,7 @@ export const getRanking = async (req, res) => {
           averageTeacherRating: teacherCount ? totalTeacherRating / teacherCount : 0,
           have: majorName && majorHistories.length === 0 ? false : true,
           isLike,
+          isCompare,
           admissionScore
         };
       })

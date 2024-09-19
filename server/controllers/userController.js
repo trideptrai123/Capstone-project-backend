@@ -20,6 +20,8 @@ const authUser = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
+      compareUniversities: user.compareUniversities,
+      universityId: user.universityId,
       role:user.role,
       token:token
      // Include likedUniversities
@@ -53,7 +55,7 @@ export const changePassword = asyncHandler(async (req, res) => {
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, userType } = req.body;
+  const { name, email, password, userType, isUniversity, likedUniversities, compareUniversities,universityId } = req.body;
 
   const userExists = await User.findOne({ email });
 
@@ -61,13 +63,33 @@ const registerUser = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("User already exists");
   }
+  let user;
 
-  const user = await User.create({
-    name,
-    email,
-    password,
-    userType,
-  });
+  if (universityId === null || universityId === "") {
+    // universityId is either null or an empty string, create user without it
+    user = await User.create({
+      name,
+      email,
+      password,
+      userType,
+      isUniversity,
+      likedUniversities,
+      compareUniversities,
+    });
+  } else {
+    // universityId exists, include it in the user creation
+    user = await User.create({
+      name,
+      email,
+      password,
+      userType,
+      isUniversity,
+      likedUniversities,
+      compareUniversities,
+      universityId,
+    });
+  }
+  
 
   // If user is successfully created, generate token and return user info
   if (user) {
@@ -78,8 +100,11 @@ const registerUser = asyncHandler(async (req, res) => {
       name: user.name,
       email: user.email,
       isAdmin: user.isAdmin,
+      isUniversity : user.isUniversity,
+      universityId: user.universityId,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
+      compareUniversities: user.compareUniversities,
       token // Include likedUniversities
     });
   } else {
@@ -109,6 +134,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
       isAdmin: user.isAdmin,
       userType: user.userType,
       likedUniversities: user.likedUniversities,
+      compareUniversities: user.compareUniversities,
       role:user?.role,
       universityId:user.universityId || null,
       gender:user.gender,
@@ -219,6 +245,7 @@ const updateUser = asyncHandler(async (req, res) => {
       isAdmin: updatedUser.isAdmin,
       userType: updatedUser.userType,
       likedUniversities: updatedUser.likedUniversities, // Include likedUniversities
+      compareUniversities: updatedUser.compareUniversities,
     });
   } else {
     res.status(404);
@@ -388,6 +415,61 @@ export const updateUserProfile = async (req, res) => {
   }
 };
 
+// @desc    Like/Unlike university
+// @route   PUT /api/users/like/:id
+// @access  Private
+const addCompareUniversity = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  console.log(user)
+  if (user.compareUniversities.length >= 2) {
+    res.status(400).json({ message: "Không thể add thêm trường để so sánh. Hãy bỏ chọn 1 trường" });
+
+  }
+  if (user) {
+    const universityId = req.params.id;
+    const index = user.compareUniversities.indexOf(universityId);
+
+    if (index === -1) {
+      user.compareUniversities.push(universityId);
+    } else {
+      user.compareUniversities.splice(index, 1);
+    }
+
+    await user.save();
+    res.status(200).json({ compareUniversities: user.compareUniversities });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  
+  
+
+}
+});
+
+
+ const deleteCompareUniversity = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  console.log(user)
+
+  if (user) {
+    const universityId = req.params.id;
+    const index = user.compareUniversities.indexOf(universityId);
+
+    if (index === -1) {
+      res.status(400).json({ message: "Không tìm thấy trường đại học " });
+    } else {
+      user.compareUniversities.splice(index, 1);
+    }
+
+    await user.save();
+    res.status(200).json({ compareUniversities: user.compareUniversities });
+  } else {
+    res.status(404);
+    throw new Error("User not found");
+  }
+});
+
+
 export {
   authUser,
   registerUser,
@@ -400,5 +482,7 @@ export {
   likeUniversity,
   searchUser,
   inactiveUser,
-  addUser
+  addUser,
+  addCompareUniversity,
+  deleteCompareUniversity
 };
