@@ -6,7 +6,7 @@ import MajorHistory from "../models/MajorHistory.js";
 import mongoose from "mongoose";
 import BlogPost from "../models/BlogPost.js";
 import Review from "../models/Review.js";
-
+import CommentsUniversity from "../models/CommentUnversity.js";
 
 export const createUniversity = asyncHandler(async (req, res) => {
   const {
@@ -290,15 +290,31 @@ const getUniversityById = asyncHandler(async (req, res) => {
       { $match: { universityId: new mongoose.Types.ObjectId(req.params.id), year: currentYear } },
       { $group: { _id: null, averageRating: { $avg: "$rating" } } }
     ]);
-
+  // Tính toán rating trung bình của giảng viên cho trường theo năm hiện tại
+  const reviewStudent = await CommentsUniversity.aggregate([
+    { 
+      $match: { 
+        universityId: new mongoose.Types.ObjectId(req.params.id),
+        rating: { $gt: 0 } 
+      } 
+    },
+    { 
+      $group: { 
+        _id: null, 
+        averageRatingStudent: { $avg: "$rating" } 
+      } 
+    }
+  ]);
     const averageRating = reviews.length > 0 ? reviews[0].averageRating : null;
-
+    const averageRatingStudent = reviewStudent.length > 0 ? reviewStudent[0].averageRatingStudent : null;
+    
     // Lấy thứ hạng của trường theo năm hiện tại
     const rankingForYear = university.nationalRanking.find(rank => rank.year === currentYear);
 
     res.status(200).json({
       ...university.toObject(),
       averageRating: averageRating || "Chưa có đánh giá.",
+     averageRatingStudent: averageRatingStudent || "Chưa có đánh giá.",
       currentRanking: rankingForYear ? rankingForYear.rank : "Không có dữ liệu xếp hạng."
     });
   } catch (error) {

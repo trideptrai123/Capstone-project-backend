@@ -8,8 +8,6 @@ import universityRoutes from "./routers/universityRoutes.js";
 import categoryRoutes from "./routers/categoryRoutes.js";
 import blogPostRoutes from "./routers/blogPostRoutes.js";
 import commentBlogPostRoutes from "./routers/commentBlogRoutes.js";
-
-import CommentsUniversityRoutes from "./routers/CommentsUniversityRoutes.js";
 import roomRoutes from "./routers/roomRoutes.js";
 import majorRoutes from "./routers/majorRoutes.js";
 import messageRoutes from "./routers/messageRoutes.js";
@@ -76,7 +74,6 @@ app.use("/api/users", userRoutes);
 app.use("/api/universities", universityRoutes);
 app.use("/api/category", categoryRoutes);
 app.use("/api/posts/comment", commentBlogPostRoutes);
-app.use("/api/university/comment", CommentsUniversityRoutes);
 app.use("/api/posts", blogPostRoutes);
 app.use("/api/message", messageRoutes);
 app.use("/api/room", roomRoutes);
