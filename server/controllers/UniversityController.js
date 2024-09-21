@@ -70,7 +70,17 @@ export const createUniversity = asyncHandler(async (req, res) => {
       return res
         .status(400)
         .json({ message: "Thứ hạng phải từ 1 đến 100." });
-  }
+        const existingRanking = await University.findOne({
+          "nationalRanking.year": ranking.year,
+          "nationalRanking.rank": ranking.rank
+        });
+        if (existingRanking) {
+          return res.status(400).json({
+            message: `Thứ hạng đã tồn tại ở một trường khác.`
+          });
+        }
+      }
+      
 
   if (
     trimmedFacilitiesStandards === "" ||
@@ -167,16 +177,40 @@ export const updateUniversity = asyncHandler(async (req, res) => {
       .json({ message: "Xếp hạng quốc gia phải là một mảng và không được để trống." });
 
   // Validate each ranking in the array
-  for (const ranking of nationalRanking) {
-    if (!ranking.year || !ranking.rank)
-      return res
-        .status(400)
-        .json({ message: "Mỗi mục xếp hạng phải có năm và thứ hạng." });
-    if (ranking.rank < 1 || ranking.rank > 100)
-      return res
-        .status(400)
-        .json({ message: "Thứ hạng phải từ 1 đến 100." });
+  // for (const ranking of nationalRanking) {
+  //   if (!ranking.year || !ranking.rank)
+  //     return res
+  //       .status(400)
+  //       .json({ message: "Mỗi mục xếp hạng phải có năm và thứ hạng." });
+  //   if (ranking.rank < 1 || ranking.rank > 100)
+  //     return res
+  //       .status(400)
+  //       .json({ message: "Thứ hạng phải từ 1 đến 100." });
+        
+  // }
+for (const ranking of nationalRanking) {
+  if (!ranking.year || !ranking.rank) {
+    return res.status(400).json({
+      message: "Mỗi mục xếp hạng phải có năm và thứ hạng."
+    });
   }
+
+  if (ranking.rank < 1 || ranking.rank > 100) {
+    return res.status(400).json({
+      message: "Thứ hạng phải từ 1 đến 100."
+    });
+  }
+
+  const existingRanking = await University.findOne({
+    "nationalRanking.year": ranking.year,
+    "nationalRanking.rank": ranking.rank
+  });
+  if (existingRanking) {
+    return res.status(400).json({
+      message: `Thứ hạng đã tồn tại ở một trường khác.`
+    });
+  }
+}
 
   if (
     trimmedFacilitiesStandards === "" ||
